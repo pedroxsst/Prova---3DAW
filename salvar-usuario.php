@@ -86,8 +86,8 @@ $password = "";
 $dbname = "usuarios";
 
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $acao = isset($_POST['acao']) ? $_POST['acao'] : '';
+if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['acao'])) {
+    $acao = isset($_POST['acao']) ? $_POST['acao'] : (isset($_GET['acao']) ? $_GET['acao'] : '');
     // Cadastro
     if ($acao === 'cadastrar') {
         $valid = true;
@@ -182,6 +182,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->close();
             $conn->close();
         }
+    }
+    // Exclusão
+    if ($acao === 'excluir' && isset($_GET['id'])) {
+        $id = intval($_GET['id']);
+        $conn = new mysqli($servername, $username, $password, $dbname);
+        if ($conn->connect_error) {
+            die("Falha na conexão: " . $conn->connect_error);
+        }
+        $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            header("Location: index.php");
+            exit();
+        } else {
+            $successMsg = "Erro ao excluir: " . $stmt->error;
+        }
+        $stmt->close();
+        $conn->close();
     }
 }
 ?>
